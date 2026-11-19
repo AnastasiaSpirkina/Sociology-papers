@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мои научные статьи</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #f7f7f8;
+    color: #222;
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .paper {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .paper h2 {
+    font-size: 18px;
+    margin: 0 0 6px 0;
+    line-height: 1.3;
+  }
+  .meta {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 10px;
+  }
+  .meta span {
+    display: block;
+    margin-bottom: 2px;
+  }
+  .abstract {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  .abstract.collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .toggle-btn {
+    background: none;
+    border: none;
+    color: #0b5fff;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 10px;
+  }
+  .toggle-btn:hover {
+    text-decoration: underline;
+  }
+  .link {
+    display: inline-block;
+    font-size: 13px;
+    color: #0b5fff;
+    text-decoration: none;
+  }
+  .link:hover {
+    text-decoration: underline;
+  }
+  .empty {
+    text-align: center;
+    color: #888;
+    padding: 40px 0;
+  }
+  .updated {
+    font-size: 12px;
+    color: #999;
+    margin-top: 20px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Мои научные статьи</h1>
+<div class="subtitle">Автоматически обновляемый список по вашим ключевым словам</div>
+
+<div id="list"></div>
+<div class="updated" id="updated"></div>
+
+<script>
+fetch('papers.json')
+  .then(function(r) { return r.json(); })
+  .then(function(papers) {
+    var list = document.getElementById('list');
+    if (!papers || papers.length === 0) {
+      list.innerHTML = '<div class="empty">Пока новых статей нет. Проверьте позже — список обновляется автоматически.</div>';
+      return;
+    }
+    papers.forEach(function(p, i) {
+      var div = document.createElement('div');
+      div.className = 'paper';
+
+      var h2 = document.createElement('h2');
+      h2.textContent = p.title || 'Без названия';
+      div.appendChild(h2);
+
+      var meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.innerHTML =
+        '<span><strong>Автор(ы):</strong> ' + escapeHtml(p.authors) + '</span>' +
+        '<span><strong>Журнал:</strong> ' + escapeHtml(p.journal) + '</span>' +
+        '<span><strong>Дата:</strong> ' + escapeHtml(p.published || 'не указана') + '</span>';
+      div.appendChild(meta);
+
+      var abs = document.createElement('div');
+      abs.className = 'abstract collapsed';
+      abs.id = 'abs-' + i;
+      abs.textContent = p.abstract || 'Аннотация отсутствует';
+      div.appendChild(abs);
+
+      var btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = 'Читать дальше';
+      btn.onclick = function() {
+        if (abs.classList.contains('collapsed')) {
+          abs.classList.remove('collapsed');
+          btn.textContent = 'Свернуть';
+        } else {
+          abs.classList.add('collapsed');
+          btn.textContent = 'Читать дальше';
+        }
+      };
+      div.appendChild(btn);
+
+      var a = document.createElement('a');
+      a.className = 'link';
+      a.href = p.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = 'Открыть статью на сайте издателя →';
+      div.appendChild(a);
+
+      list.appendChild(div);
+    });
+  })
+  .catch(function(e) {
+    document.getElementById('list').innerHTML =
+      '<div class="empty">Не удалось загрузить список статей. Попробуйте обновить страницу позже.</div>';
+  });
+
+document.getElementById('updated').textContent = 'Страница открыта: ' + new Date().toLocaleString('ru-RU');
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+</script>
+
+</body>
+</html>
